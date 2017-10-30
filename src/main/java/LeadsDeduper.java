@@ -93,6 +93,7 @@ public class LeadsDeduper {
                     // remove the current element if it's older than an existing dupe or if they're the same
                     // this will prefer the last entry in the list also
                     if (stringToDate(lead.entryDate).compareTo(stringToDate(duplicateLead.entryDate)) <= 0){
+                        // TODO: create a changelist
                         leadIterator.remove();
                         break;
                     }
