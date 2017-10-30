@@ -1,0 +1,17 @@
+.idea/*
+
+### Java ###
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+# End of https://www.gitignore.io/api/java,intellij
