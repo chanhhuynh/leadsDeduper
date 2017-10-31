@@ -44,6 +44,8 @@ public class LeadsDeduper {
         Type listType =  new TypeToken<List<Lead>>(){}.getType();
         // leads key only
         leads = gson.fromJson(jobject.getAsJsonArray("leads"), listType);
+
+        System.out.println("Source record: " + leads.size() + " records");
     }
 
     private Date stringToDate(String dateString){
@@ -60,6 +62,8 @@ public class LeadsDeduper {
     }
 
     private void findDuplicates(){
+        System.out.println("Finding duplicate records and updating old fields...");
+
         ListIterator leadIterator = leads.listIterator();
 
         // iterator to make the lambdas a little easier with .skip(index) for the check
@@ -91,6 +95,7 @@ public class LeadsDeduper {
         }
     }
 
+    // mostly for logging purposes
     private void diffLeads(Lead oldLead, Lead newLead){
         // get all attributes in the Lead object in case more fields are added
         Class lead = null;
@@ -101,6 +106,7 @@ public class LeadsDeduper {
             e.printStackTrace();
         }
 
+        // reflect to get all associated Lead fields
         assert lead != null;
         Field[] fields = lead.getDeclaredFields();
 
@@ -109,8 +115,11 @@ public class LeadsDeduper {
             try{
                 Object oldValue = field.get(oldLead);
                 Object newValue = field.get(newLead);
-                if (oldValue != newValue){
-                    System.out.println(field.getName() + " : " + oldValue + " -> " + newValue);
+
+                if (!oldValue.equals(newValue)){
+                    System.out.println("Updating " + field.getName() + " : " + oldValue + " -> " + newValue);
+                } else{
+                    System.out.println("Duplicate " + field.getName() + " : " + oldValue);
                 }
             } catch(IllegalAccessException e){
                 e.printStackTrace();
@@ -142,6 +151,9 @@ public class LeadsDeduper {
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("leads", gson.toJsonTree(leads));
+
+        System.out.println("Output record:");
+        System.out.print(gson.toJson(jsonObject));
 
         try (Writer writer = new FileWriter("output.json")){
             gson.toJson(jsonObject, writer);
