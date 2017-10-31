@@ -11,31 +11,39 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class LeadsDeduper {
-    private String filename;
+    private String inputFile;
+    private String outputFile = "output.json";
     private BufferedReader leadsFile;
 
     // leads will hold initial and final values
     private List<Lead> leads;
     private List<Lead> duplicateLeads = new ArrayList<>();
 
-    private void getFilename(String[] arguments){
+    private void getArguments(String[] arguments){
         OptionParser optionParser = new OptionParser();
-        String[] fileOptions = { "f", "file" };
-        optionParser.acceptsAll(Arrays.asList(fileOptions), "Path and name of file.")
+        String[] inputFileArgs = { "f", "file" };
+        optionParser.acceptsAll(Arrays.asList(inputFileArgs), "Input file path")
                 .withRequiredArg()
                 .required()
+                .ofType(String.class);
+        String[] outputFileArgs = { "o", "output" };
+        optionParser.acceptsAll(Arrays.asList(outputFileArgs), "Output file path")
+                .withOptionalArg()
                 .ofType(String.class);
 
         OptionSet options = optionParser.parse(arguments);
 
-        filename = (String)options.valueOf("file");
+        inputFile = (String)options.valueOf("file");
+        if (options.valueOf("output") != null){
+            outputFile = (String)options.valueOf("output");
+        }
     }
 
     private void readJsonLeads() throws IOException {
         Gson gson = new Gson();
 
         try {
-            leadsFile = new BufferedReader(new FileReader(filename));
+            leadsFile = new BufferedReader(new FileReader(inputFile));
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -155,7 +163,7 @@ public class LeadsDeduper {
         System.out.println("Output record:");
         System.out.print(gson.toJson(jsonObject));
 
-        try (Writer writer = new FileWriter("output.json")){
+        try (Writer writer = new FileWriter(outputFile)){
             gson.toJson(jsonObject, writer);
         } catch(java.io.IOException e){
             e.printStackTrace();
@@ -167,7 +175,7 @@ public class LeadsDeduper {
         LeadsDeduper leadsDeduper = new LeadsDeduper();
 
         try{
-            leadsDeduper.getFilename(args);
+            leadsDeduper.getArguments(args);
             leadsDeduper.readJsonLeads();
             leadsDeduper.findDuplicates();
             leadsDeduper.deduplicateLeads();
