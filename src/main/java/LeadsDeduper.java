@@ -20,18 +20,28 @@ public class LeadsDeduper {
     private List<Lead> duplicateLeads = new ArrayList<>();
 
     private void getArguments(String[] arguments){
-        OptionParser optionParser = new OptionParser();
-        String[] inputFileArgs = { "f", "file" };
-        optionParser.acceptsAll(Arrays.asList(inputFileArgs), "Input file path")
-                .withRequiredArg()
-                .required()
-                .ofType(String.class);
-        String[] outputFileArgs = { "o", "output" };
-        optionParser.acceptsAll(Arrays.asList(outputFileArgs), "Output file path")
-                .withOptionalArg()
-                .ofType(String.class);
+        OptionParser optionParser = new OptionParser(){
+            {
+                acceptsAll( Arrays.asList("f", "file"), "Input file path")
+                        .withRequiredArg()
+                        .required()
+                        .ofType(String.class);
+                acceptsAll(Arrays.asList("o", "output"), "Output file path")
+                        .withOptionalArg()
+                        .ofType(String.class);
+                acceptsAll(Collections.singletonList("h"), "Help").forHelp();
+            }
+        };
 
         OptionSet options = optionParser.parse(arguments);
+
+        try{
+            optionParser.printHelpOn(System.out);
+            System.exit(0);
+        } catch(IOException e){
+            e.printStackTrace();
+
+        }
 
         inputFile = (String)options.valueOf("file");
         if (options.valueOf("output") != null){
