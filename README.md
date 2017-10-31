@@ -2,7 +2,7 @@
 
 ## How to run
 After pulling, run 
-``mvn clean compile assembly:single``
+``mvn compile assembly:single``
 in the target directory.
 
 The program creates by default a .JAR file in the ``/target``.
