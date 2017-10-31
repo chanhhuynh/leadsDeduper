@@ -5,7 +5,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 import java.io.*;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -70,14 +70,50 @@ public class LeadsDeduper {
             // check if there are duplicate _id or email properties
             duplicateId = leads.stream()
                     .skip(leadIterator.nextIndex())
-                    .anyMatch(_lead -> _lead._id.equals(lead._id));
+                    .anyMatch(_lead -> {
+                        if (_lead._id.equals(lead._id)){
+                            diffLeads(lead, _lead);
+                            return true;
+                        } else return false;
+                    });
             duplicateEmail = leads.stream()
                     .skip(leadIterator.nextIndex())
-                    .anyMatch(_lead -> _lead.email.equals(lead.email));
-
+                    .anyMatch(_lead -> {
+                        if (_lead.email.equals(lead.email)){
+                            diffLeads(lead, _lead);
+                            return true;
+                        } else return false;
+                    });
             // add if either _id or email are duplicates
             if (duplicateId || duplicateEmail){
                 duplicateLeads.add(lead);
+            }
+        }
+    }
+
+    private void diffLeads(Lead oldLead, Lead newLead){
+        // get all attributes in the Lead object in case more fields are added
+        Class lead = null;
+        try{
+
+            lead = Class.forName("Lead");
+        } catch(ClassNotFoundException e){
+            e.printStackTrace();
+        }
+
+        assert lead != null;
+        Field[] fields = lead.getDeclaredFields();
+
+        for (Field field : fields){
+            field.setAccessible(true);
+            try{
+                Object oldValue = field.get(oldLead);
+                Object newValue = field.get(newLead);
+                if (oldValue != newValue){
+                    System.out.println(field.getName() + " : " + oldValue + " -> " + newValue);
+                }
+            } catch(IllegalAccessException e){
+                e.printStackTrace();
             }
         }
     }
@@ -93,7 +129,6 @@ public class LeadsDeduper {
                     // remove the current element if it's older than an existing dupe or if they're the same
                     // this will prefer the last entry in the list also
                     if (stringToDate(lead.entryDate).compareTo(stringToDate(duplicateLead.entryDate)) <= 0){
-                        // TODO: create a changelist
                         leadIterator.remove();
                         break;
                     }
